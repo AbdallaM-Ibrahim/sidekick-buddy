@@ -31,5 +31,12 @@ Since spaces act as large buckets (e.g., "Family", "Personal"), users will frequ
 **Why it's necessary:**
 When validating if a transaction exceeds a budget, the system needs to quickly look up if a budget exists for that specific user + space + tag combination. Making it a `UNIQUE` index also enforces data integrity (preventing two duplicate budget rules from being created).
 
+## 6. `idx_asset_prices_lookup`
+**Definition:** `CREATE INDEX idx_asset_prices_lookup ON asset_prices (user_id, unit, recorded_at DESC);`
+**Why it's necessary:**
+To dynamically calculate non-fiat asset valuations, the system will regularly query the latest manually entered price: `WHERE user_id = X AND unit = Y ORDER BY recorded_at DESC LIMIT 1`. This composite index makes this $O(1)$ query near instantaneous.
+
+---
+
 ## Summary
-By adding just these 5 indexes, the database will handle N+1 dashboard queries, heavy analytical filtering, and massive chronological pagination on millions of rows with near 0ms latency. Anything more than this is premature optimization.
+By adding just these 6 indexes, the database will handle dashboard queries, manual asset price evaluations, and analytical checks on millions of rows with near 0ms latency. Anything more than this is premature optimization.
